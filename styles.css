@@ -104,7 +104,25 @@ body > section:first-of-type p {
   font-size: 1.1rem;
   margin-bottom: 2rem;
 }
+body {
+  background-color: #ffffff;
+  color: #000000;
+  transition: background 0.3s, color 0.3s;
+}
 
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode header,
+body.dark-mode footer {
+  background-color: #1e1e1e;
+}
+
+body.dark-mode a {
+  color: #80cbc4;
+}
 /* Forms */
 form {
   display: flex;

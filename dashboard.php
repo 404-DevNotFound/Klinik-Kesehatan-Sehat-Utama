@@ -1,8 +1,9 @@
 <?php
 session_start();
+require_once 'koneksi.php';
 
 // Cek apakah user sudah login
-if (!isset($_SESSION['username'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
@@ -10,11 +11,17 @@ if (!isset($_SESSION['username'])) {
 // Ambil data dari session
 $username = $_SESSION['username'];
 $role = $_SESSION['role'] ?? 'user';
+$email = $_SESSION['email'] ?? '';
 $login_time = $_SESSION['login_time'] ?? 'Unknown';
 
 // Ambil parameter dari query string
 $action = $_GET['action'] ?? '';
 $message = $_GET['message'] ?? '';
+
+// Hitung statistik dari database
+$query_total_pasien = "SELECT COUNT(*) as total FROM pasien";
+$result_pasien = mysqli_query($conn, $query_total_pasien);
+$total_pasien = mysqli_fetch_assoc($result_pasien)['total'];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -232,6 +239,10 @@ $message = $_GET['message'] ?? '';
                     <span><?php echo htmlspecialchars($username); ?></span>
                 </div>
                 <div class="info-item">
+                    <strong>Email</strong>
+                    <span><?php echo htmlspecialchars($email); ?></span>
+                </div>
+                <div class="info-item">
                     <strong>Role</strong>
                     <span><?php echo strtoupper(htmlspecialchars($role)); ?></span>
                 </div>
@@ -258,10 +269,10 @@ $message = $_GET['message'] ?? '';
                 <p>Lihat dan kelola jadwal praktek dokter</p>
             </a>
 
-            <a href="dashboard.php?action=pasien" class="menu-card">
+            <a href="pasien.php" class="menu-card" style="border: 3px solid #4CAF50;">
                 <div class="menu-icon">👥</div>
                 <h3>Data Pasien</h3>
-                <p>Manajemen data dan rekam medis pasien</p>
+                <p>Manajemen data dan rekam medis pasien (CRUD)</p>
             </a>
 
             <a href="dashboard.php?action=appointment" class="menu-card">
@@ -292,8 +303,8 @@ $message = $_GET['message'] ?? '';
         <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number">156</div>
-                <div class="stat-label">Total Pasien Hari Ini</div>
+                <div class="stat-number"><?php echo $total_pasien; ?></div>
+                <div class="stat-label">Total Pasien Terdaftar</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">12</div>

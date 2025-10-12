@@ -1,8 +1,8 @@
 <?php
 session_start();
+include 'koneksi.php';
 
-// Redirect ke dashboard jika sudah login
-if (isset($_SESSION['username'])) {
+if (isset($_SESSION['user_id'])) {
     header('Location: dashboard.php');
     exit();
 }
@@ -10,20 +10,32 @@ if (isset($_SESSION['username'])) {
 // Proses login
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $role = $_POST['role'] ?? 'user';
+    $username = clean_input($_POST['username']);
+    $password = $_POST['password'];
+    $role = clean_input($_POST['role']);
     
-    // Validasi sederhana (dalam praktik nyata, gunakan database dan hash password)
     if (!empty($username) && !empty($password)) {
-        // Simpan data ke session
-        $_SESSION['username'] = $username;
-        $_SESSION['role'] = $role;
-        $_SESSION['login_time'] = date('Y-m-d H:i:s');
+        // Query untuk cek user
+        $password_md5 = md5($password);
+        $query = "SELECT * FROM users WHERE username = '$username' AND password = '$password_md5' AND role = '$role' LIMIT 1";
+        $result = mysqli_query($conn, $query);
         
-        // Redirect ke dashboard
-        header('Location: dashboard.php');
-        exit();
+        if (mysqli_num_rows($result) == 1) {
+            $user = mysqli_fetch_assoc($result);
+            
+            // Simpan data ke session
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['email'] = $user['email'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['login_time'] = date('Y-m-d H:i:s');
+            
+            // Redirect ke dashboard
+            header('Location: dashboard.php');
+            exit();
+        } else {
+            $error = 'Username, password, atau role tidak sesuai!';
+        }
     } else {
         $error = 'Username dan password harus diisi!';
     }
@@ -40,23 +52,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
     <form method="POST" action="login.php">
+        <h2 style="text-align: center; margin-bottom: 20px; color: #4CAF50;">🏥 Login Klinik</h2>
+        
         <?php if ($error): ?>
-            <div style="color: red; margin-bottom: 10px;"><?php echo $error; ?></div>
+            <div style="color: red; background: #ffebee; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center;">
+                <?php echo $error; ?>
+            </div>
         <?php endif; ?>
         
         <label for="role">Login Sebagai:</label><br />
-        <select id="role" name="role">
+        <select id="role" name="role" required>
             <option value="user">User</option>
             <option value="admin">Admin</option>
         </select><br /><br />
 
-        <label for="username">Username / Email:</label><br />
+        <label for="username">Username:</label><br />
         <input type="text" id="username" name="username" required /><br /><br />
 
         <label for="password">Password:</label><br />
         <input type="password" id="password" name="password" required /><br /><br />
 
         <button type="submit">Login</button>
+        
+        <div style="margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 5px; font-size: 12px;">
+            <strong>Demo Login:</strong><br>
+            Admin: username: <code>admin</code> | password: <code>admin123</code><br>
+            User: username: <code>user1</code> | password: <code>user123</code>
+        </div>
     </form>
     <p>Belum punya akun? <a href="Signup.php">Sign Up di sini</a></p>
 </body>
